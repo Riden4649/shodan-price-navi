@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2f6b57">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="商談価格ナビ">
+  <meta name="format-detection" content="telephone=no">
+  <title>タイヤ館 商談価格ナビ</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="stylesheet" href="css/styles.css?v=20260831-v242">
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="#" aria-label="トップへ">
+      <span class="wordmark-symbol">B</span>
+      <span><strong>タイヤ館 商談価格ナビ</strong><small>BRIDGESTONE PRICE CONSULTATION</small></span>
+    </a>
+    <div class="topbar-actions">
+      <button class="version-button" id="versionButton" type="button">商談ナビ Ver 2.4.2</button>
+      <span class="local-badge" id="connectivityBadge">PWA / READY</span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="intro">
+      <p class="kicker">TIRE CONSULTATION</p>
+      <h1>お客様にぴったりのタイヤを、<br>心地よくご提案。</h1>
+      <p>ブランドからサイズまで、順番に選ぶだけ。価格表の情報を、お客様へそのまま見せられる提案画面に整えます。</p>
+    </section>
+
+    <section class="season-switcher" aria-label="価格表切替">
+      <div>
+        <p class="kicker">PRICE BOOK</p>
+        <strong id="seasonCurrentLabel">現在：夏タイヤ</strong>
+        <span id="seasonStatus">夏価格表を読み込んでください</span>
+      </div>
+      <div class="season-buttons">
+        <button id="summerTireButton" type="button" class="selected" data-season="summer">夏タイヤ</button>
+        <button id="winterTireButton" type="button" data-season="winter">冬タイヤ</button>
+      </div>
+    </section>
+
+    <details class="admin-card" id="adminPanel">
+      <summary>
+        <span class="admin-icon">⚙</span>
+        <span><strong>価格表・価格設定</strong><small id="adminSummary">はじめに価格表を読み込んでください</small></span>
+        <span class="chevron"></span>
+      </summary>
+      <div class="admin-body">
+        <section>
+          <h2>価格表を読み込む</h2>
+          <p class="season-import-note" id="seasonImportNote">現在選択中：夏タイヤ</p>
+          <label class="file-drop" id="dropZone" for="fileInput">
+            <input id="fileInput" type="file" accept=".xlsm,.xlsx,application/vnd.ms-excel.sheet.macroEnabled.12,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <span class="file-plus">＋</span>
+            <span><strong>Excel価格表を選択</strong><small>.xlsm / .xlsx　ドラッグ＆ドロップ対応</small></span>
+          </label>
+          <p class="import-status" id="importStatus" aria-live="polite"><i></i><span>価格表は未読込です</span></p>
+          <div class="data-source-panel" id="dataSourcePanel">
+            <div><span>現在の読込ファイル</span><strong id="sourceFileName">未読込</strong></div>
+            <div><span>読込日時</span><strong id="sourceLoadedAt">―</strong></div>
+            <div><span>読込シート数</span><strong id="sourceSheetCount">0</strong></div>
+            <div><span>読込商品数</span><strong id="sourceProductCount">0</strong></div>
+            <div><span>データ元</span><strong id="sourceType">未読込</strong></div>
+          </div>
+          <button class="data-clear-button" id="clearData" type="button" disabled>データをクリア</button>
+          <div class="sheet-list" id="sheetList"></div>
+          <div class="store-settings">
+            <h2>店舗情報設定</h2>
+            <div class="store-grid">
+              <label><span>店舗名</span><input id="storeName" type="text" placeholder="タイヤ館 箕輪"></label>
+              <label><span>電話番号</span><input id="storePhone" type="tel" placeholder="電話番号"></label>
+              <label class="wide"><span>住所</span><input id="storeAddress" type="text" placeholder="住所"></label>
+              <label><span>担当者名</span><input id="storeStaff" type="text" placeholder="担当者名"></label>
+              <label class="wide"><span>備考</span><textarea id="storeNote" rows="3" placeholder="お見積書に表示する備考"></textarea></label>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div class="setting-heading"><h2>販売価格設定</h2><button id="resetSettings" type="button">初期値に戻す</button></div>
+          <div class="setting-row">
+            <label><span>加算額</span><div><input id="addition" type="number" min="0" step="100"><em>円</em></div></label>
+            <label><span>消費税率</span><div><input id="taxRate" type="number" min="0" max="100" step="0.1"><em>%</em></div></label>
+          </div>
+          <p class="setting-label">ブランド別掛率</p>
+          <div class="rate-grid" id="rateGrid"></div>
+          <p class="formula">（原価 ÷ ブランド掛率 ＋ 加算額）×（1 ＋ 消費税率）→ 100円単位切上げ<br>掛率が空欄または0の場合は1.0として計算します。</p>
+            <div class="labor-heading">
+            <div><p class="setting-label">工賃設定</p><small>すべて1本あたり・税込</small></div>
+            <label class="labor-switch">
+              <input id="includeLabor" type="checkbox">
+              <span class="switch-track"></span>
+              <strong>工賃を含める</strong>
+            </label>
+          </div>
+          <div class="vehicle-settings">
+            <div>
+              <span>車両区分</span>
+              <div class="vehicle-buttons" role="group" aria-label="車両区分">
+                <button id="domesticVehicleButton" type="button" data-vehicle="domestic">国産車</button>
+                <button id="importVehicleButton" type="button" data-vehicle="import">輸入車</button>
+              </div>
+            </div>
+            <label class="runflat-switch">
+              <input id="runFlatTire" type="checkbox">
+              <span>ランフラットタイヤ</span>
+            </label>
+          </div>
+          <div class="auto-labor-panel" id="autoLaborPanel">
+            <div><span>自動判定インチ</span><strong id="autoLaborInch">未判定</strong></div>
+            <div><span>工賃区分</span><strong id="autoLaborCategory">未判定</strong></div>
+            <div><span>お買上時 1本工賃</span><strong id="autoLaborAmount">0円</strong></div>
+            <label class="auto-labor-select"><span>手動区分変更</span><select id="manualLaborCategory"></select></label>
+            <button id="restoreAutoLabor" type="button">自動工賃に戻す</button>
+          </div>
+          <div class="labor-grid" id="laborGrid">
+            <label><span>組替え</span><div><input type="number" min="0" step="1" inputmode="numeric" data-labor="replacement"><em>円</em></div></label>
+            <label><span>脱着</span><div><input type="number" min="0" step="1" inputmode="numeric" data-labor="removal"><em>円</em></div></label>
+            <label><span>バランス調整</span><div><input type="number" min="0" step="1" inputmode="numeric" data-labor="balancing"><em>円</em></div></label>
+            <label><span>チューブレスバルブ</span><div><input type="number" min="0" step="1" inputmode="numeric" data-labor="valve"><em>円</em></div></label>
+            <label><span>廃タイヤ処理料</span><div><input type="number" min="0" step="1" inputmode="numeric" data-labor="disposal"><em>円</em></div></label>
+            <label><span>窒素ガス充填</span><div><input type="number" min="0" step="1" inputmode="numeric" data-labor="nitrogen"><em>円</em></div></label>
+            <label><span>持ち帰り袋</span><div><input type="number" min="0" step="1" inputmode="numeric" data-labor="bag"><em>円</em></div></label>
+          </div>
+          <p class="labor-summary">1本工賃 <strong id="laborPerTire">0</strong>円 ／ 4本工賃 <strong id="laborFourTires">0</strong>円</p>
+          <div class="option-settings">
+            <p class="setting-label">見積オプション</p>
+            <div class="option-buttons" id="optionButtons">
+              <button type="button" data-option="labor">工賃</button>
+              <button type="button" data-option="disposal">廃タイヤ処理料</button>
+              <button type="button" data-option="valve">チューブレスバルブ</button>
+              <button type="button" data-option="nitrogen">窒素ガス充填</button>
+              <button type="button" data-option="bag">持ち帰り袋</button>
+              <button type="button" data-option="inspection">安全点検・100km点検</button>
+            </div>
+          </div>
+          <div class="custom-print-settings">
+            <div class="custom-print-heading">
+              <p class="setting-label">追加印刷項目</p>
+              <button id="addCustomPrintItem" type="button">＋項目追加</button>
+            </div>
+            <div class="custom-print-list" id="customPrintItems"></div>
+          </div>
+        </section>
+      </div>
+    </details>
+
+    <section class="finder" aria-label="タイヤ検索">
+      <div class="finder-head">
+        <div><p class="kicker">FIND YOUR TIRE</p><h2>タイヤを選ぶ</h2></div>
+        <button class="clear-button" id="clearSelection" type="button">選択をクリア</button>
+      </div>
+
+      <div class="selection-summary" id="selectionSummary">
+        <span>ブランド</span><b>未選択</b><i></i>
+        <span>商品</span><b>未選択</b><i></i>
+        <span>インチ</span><b>未選択</b><i></i>
+        <span>サイズ</span><b>未選択</b>
+      </div>
+
+      <div class="accordion">
+        <section class="filter-step open" data-step="brand">
+          <button class="step-trigger" type="button" aria-expanded="true">
+            <span class="step-number">01</span><span class="step-copy"><small>BRAND</small><strong>ブランドを選ぶ</strong></span>
+            <span class="step-value" id="brandValue">未選択</span><span class="chevron"></span>
+          </button>
+          <div class="step-content">
+            <div class="selection-actions"><button id="selectAllBrands" type="button">すべて選択</button><button id="clearAllBrands" type="button">すべて解除</button></div>
+            <div class="choice-grid brand-grid" id="brandChoices"></div>
+          </div>
+        </section>
+
+        <section class="filter-step disabled" data-step="subbrand">
+          <button class="step-trigger" type="button" aria-expanded="false">
+            <span class="step-number">02</span><span class="step-copy"><small>PRODUCT</small><strong>商品を選ぶ</strong></span>
+            <span class="step-value" id="subbrandValue">ブランドを先に選択</span><span class="chevron"></span>
+          </button>
+          <div class="step-content">
+            <div class="selection-actions"><button id="selectAllProducts" type="button">すべて選択</button><button id="clearAllProducts" type="button">すべて解除</button></div>
+            <div class="choice-grid" id="subbrandChoices"></div>
+          </div>
+        </section>
+
+        <section class="filter-step disabled" data-step="inch">
+          <button class="step-trigger" type="button" aria-expanded="false">
+            <span class="step-number">03</span><span class="step-copy"><small>INCH</small><strong>インチを選ぶ</strong></span>
+            <span class="step-value" id="inchValue">商品を先に選択</span><span class="chevron"></span>
+          </button>
+          <div class="step-content"><div class="choice-grid inch-grid" id="inchChoices"></div></div>
+        </section>
+
+        <section class="filter-step disabled" data-step="size">
+          <button class="step-trigger" type="button" aria-expanded="false">
+            <span class="step-number">04</span><span class="step-copy"><small>SIZE</small><strong>タイヤサイズを選ぶ</strong></span>
+            <span class="step-value" id="sizeValue">インチを先に選択</span><span class="chevron"></span>
+          </button>
+          <div class="step-content"><div class="choice-grid size-grid" id="sizeChoices"></div></div>
+        </section>
+      </div>
+
+      <button class="search-button" id="searchButton" type="button" disabled><span>選択したタイヤの価格を見る</span><i>→</i></button>
+    </section>
+
+    <section class="results" id="resultsSection" aria-live="polite">
+      <div class="results-head">
+        <div><p class="kicker">PRICE OPTIONS</p><h2>ご提案価格 <span id="resultCount">0件</span></h2></div>
+        <p id="resultMessage">条件を選択すると価格を表示します</p>
+      </div>
+      <div class="result-grid" id="resultGrid">
+        <div class="empty-state"><span class="empty-ring"></span><strong>タイヤを選択してください</strong><p>4つの項目を順番に選ぶと、ご提案価格を表示します。</p></div>
+      </div>
+    </section>
+
+    <section class="proposal-list-section" id="proposalListSection">
+      <div class="proposal-list-head">
+        <div><p class="kicker">COMPARE PROPOSAL</p><h2>ご提案リスト <span id="proposalCount">0件</span></h2></div>
+        <button class="compare-open-button" id="openCompareProposal" type="button" disabled>比較提案を表示・印刷</button>
+      </div>
+      <div class="proposal-list" id="proposalList">
+        <div class="empty-state"><span class="empty-ring"></span><strong>提案商品が未選択です</strong><p>検索結果の「提案する」をチェックすると、比較提案に追加されます。</p></div>
+      </div>
+    </section>
+
+    <section class="data-quality-panel" id="dataQualityPanel" hidden>
+      <div class="data-quality-head">
+        <div><p class="kicker">DATA CHECK</p><h2>データ確認</h2></div>
+        <span id="dataQualityStatus">未確認</span>
+      </div>
+      <div class="data-quality-summary" id="dataQualitySummary"></div>
+      <div class="data-quality-section">
+        <strong>警告</strong>
+        <div class="data-quality-warnings" id="dataQualityWarnings"></div>
+      </div>
+      <details class="data-quality-section data-quality-details">
+        <summary>詳細を表示</summary>
+        <div class="data-quality-detail-grid">
+          <div>
+            <strong>シート別読み込みログ</strong>
+            <div class="data-quality-list" id="dataQualitySheets"></div>
+          </div>
+          <div>
+            <strong>ブランド・商品・サイズ別件数</strong>
+            <div class="data-quality-counts" id="dataQualityCounts"></div>
+          </div>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer><strong>タイヤ館 商談価格ナビ</strong><span>価格表は端末内でのみ処理され、外部送信されません。</span></footer>
+
+  <dialog class="version-dialog" id="versionDialog">
+    <div class="version-dialog-head">
+      <div>
+        <p class="kicker">APP INFO</p>
+        <h2>商談ナビ</h2>
+      </div>
+      <button id="versionClose" type="button" aria-label="閉じる">×</button>
+    </div>
+    <dl class="version-info">
+      <div><dt>バージョン</dt><dd>Ver 2.4.2</dd></div>
+      <div><dt>最終更新日</dt><dd>2026/06/28</dd></div>
+      <div><dt>夏価格表</dt><dd id="versionSummerFile">未読込</dd></div>
+      <div><dt>冬価格表</dt><dd id="versionWinterFile">未読込</dd></div>
+    </dl>
+    <div class="version-history">
+      <strong>更新履歴</strong>
+      <ul>
+        <li>Ver2.1：印刷改善</li>
+        <li>Ver2.2：データ確認機能・冬価格表対応</li>
+        <li>Ver2.3：印刷項目追加・アライメント・パンク補償・その他項目</li>
+        <li>Ver2.4：iPadスクロール修正・夏冬切替・輸入車工賃対応・バージョン表示</li>
+        <li>Ver2.4.1：ランフラット国産車対応・データ確認欄コンパクト化・印刷項目入力修正・比較印刷の車両区分非表示</li>
+      </ul>
+    </div>
+  </dialog>
+
+  <div class="presentation" id="presentation" hidden>
+    <div class="presentation-actions no-print">
+      <div class="quote-tabs" role="tablist" aria-label="印刷モード">
+        <button id="singleQuoteTab" type="button" class="selected">1枚印刷</button>
+        <button id="compareQuoteTab" type="button">比較印刷</button>
+      </div>
+      <button class="presentation-close" id="presentationClose" type="button" aria-label="商談画面を閉じる">×</button>
+      <button class="print-button" id="printQuote" type="button">印刷</button>
+    </div>
+    <div class="presentation-inner quote-sheet" id="quoteSheet">
+      <div class="quote-header">
+        <div>
+          <p class="presentation-label">ESTIMATE</p>
+          <h2>お見積書</h2>
+          <p class="quote-date" id="quoteDate"></p>
+        </div>
+        <div class="quote-store">
+          <strong id="quoteStoreName">タイヤ館 箕輪</strong>
+          <span id="quoteStoreAddress"></span>
+          <span id="quoteStorePhone"></span>
+          <span id="quoteStoreStaff"></span>
+        </div>
+      </div>
+      <div class="quote-product">
+        <p class="presentation-brand" id="presentationBrand"></p>
+        <h3 id="presentationSubbrand"></h3>
+        <p class="presentation-size"><span id="presentationSize"></span><span id="presentationCode"></span></p>
+        <p class="presentation-auto-labor" id="presentationAutoLabor"></p>
+      </div>
+      <div class="quote-option-controls no-print">
+        <p>表示する項目</p>
+        <div class="option-buttons" id="quoteOptionButtons">
+          <button type="button" data-option="labor">工賃</button>
+          <button type="button" data-option="disposal">廃タイヤ処理料</button>
+          <button type="button" data-option="valve">チューブレスバルブ</button>
+          <button type="button" data-option="nitrogen">窒素ガス充填</button>
+          <button type="button" data-option="bag">持ち帰り袋</button>
+          <button type="button" data-option="inspection">安全点検・100km点検</button>
+        </div>
+      </div>
+      <div class="quote-summary">
+        <div><span>本数</span><strong id="quoteQuantity">4本</strong></div>
+        <div><span>タイヤ単価</span><strong id="presentationSingle"></strong></div>
+        <div><span>タイヤ合計</span><strong id="presentationFour"></strong></div>
+      </div>
+      <div class="quote-lines">
+        <table>
+          <thead><tr><th>内容</th><th>単価</th><th>数量</th><th>金額</th></tr></thead>
+          <tbody id="quoteLineBody"></tbody>
+        </table>
+      </div>
+      <div class="quote-total">
+        <span>税込合計金額</span>
+        <strong id="presentationTotal"></strong>
+      </div>
+      <div class="quote-note">
+        <strong>備考</strong>
+        <p id="quoteNote"></p>
+      </div>
+      <p class="presentation-note">安心・快適なカーライフのために、最適なタイヤ選びをお手伝いいたします。</p>
+    </div>
+    <div class="presentation-inner compare-sheet" id="compareSheet" hidden>
+      <div class="quote-header">
+        <div>
+          <p class="presentation-label">ESTIMATE</p>
+          <h2>お見積書</h2>
+          <p class="quote-date" id="compareDate"></p>
+        </div>
+        <div class="quote-store">
+          <strong id="compareStoreName">タイヤ館 箕輪</strong>
+          <span id="compareStoreAddress"></span>
+          <span id="compareStorePhone"></span>
+          <span id="compareStoreStaff"></span>
+        </div>
+      </div>
+      <div id="comparePages" class="compare-pages"></div>
+      <div class="quote-note">
+        <strong>備考</strong>
+        <p id="compareNote"></p>
+      </div>
+    </div>
+  </div>
+
+  <template id="resultTemplate">
+    <article class="result-card">
+      <div class="product-heading"><span class="brand-badge"></span><span class="source-badge"></span></div>
+      <h3 class="product-name"></h3>
+      <p class="tire-size"></p>
+      <p class="product-code"></p>
+      <p class="auto-labor-badge"></p>
+      <label class="proposal-check"><input type="checkbox" class="proposal-checkbox"><span>提案する</span></label>
+      <div class="price-pair">
+        <div><span>1本価格 <small>税込</small></span><strong class="single-price"></strong></div>
+        <div><span>タイヤ4本 <small>税込</small></span><strong class="four-price"></strong></div>
+      </div>
+      <div class="labor-total">
+        <p><span>作業・オプション合計</span><strong class="labor-price"></strong></p>
+        <p class="grand-total"><span>工賃込み総額</span><strong class="total-price"></strong></p>
+      </div>
+      <button class="presentation-button" type="button">お客様へ表示 <span>→</span></button>
+      <button class="copy-button" type="button">提案内容をコピー</button>
+    </article>
+  </template>
+
+  <script src="vendor/jszip.min.js"></script>
+  <script src="data/brand-config.js?v=20260831-v242"></script>
+  <script src="js/workbook.js?v=20260831-v242"></script>
+  <script src="js/pricing.js?v=20260831-v242"></script>
+  <script src="js/app.js?v=20260831-v242"></script>
+  <script src="js/pwa.js?v=20260831-v242"></script>
+</body>
+</html>
