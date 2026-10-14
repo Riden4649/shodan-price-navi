@@ -1,0 +1,27 @@
+
+/* STEEL FRONT V2 — Hex-map and fog of war */
+.map-scroll { overflow:auto; max-height:min(67vh,650px); background:#314648; -webkit-overflow-scrolling:touch; touch-action:pan-x pan-y; overscroll-behavior:contain; border-radius:10px; }
+#board.board { display:block; padding:0; width:1000px; min-width:1000px; height:620px; min-height:620px; max-width:none; aspect-ratio:auto; margin:0; border:0; background:#405454; border-radius:0; }
+#board svg { display:block; width:1000px; height:620px; user-select:none; -webkit-user-select:none; }
+.hex-group {cursor:pointer;outline:none;touch-action:manipulation}
+.hex-group:focus-visible polygon {stroke:#ffdd71;stroke-width:4}
+.battlefield {min-width:0}
+.board-head .label {font-size:11px}
+.map-footer {gap:7px}
+.map-footer .terrain-legend {gap:7px}
+.map-footer .terrain-legend span {white-space:nowrap}
+#detail .unit-detail-icon {font-size:28px;font-weight:900}
+.side .actions {align-self:start}
+.tip {margin:13px 5px}
+@media(max-width:1020px){
+ .board-head {flex-wrap:wrap}
+ #board.board {max-width:none}
+ .map-scroll {max-height:min(58vh,620px)}
+}
+@media(max-width:650px){
+ .map-scroll {max-height: min(55vh,570px)}
+ .map-footer{font-size:10px}
+ .board-head .label{letter-spacing:.05em}
+ .quick-end{right:10px;bottom:calc(10px + env(safe-area-inset-bottom));width:156px}
+ .app{padding-bottom:95px}
+}
