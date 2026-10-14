@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#263940">
+<title>STEEL FRONT｜鋼鉄戦線 — ターン制戦車ボードゲーム</title>
+<style>
+:root{--ink:#263940;--muted:#627278;--paper:#f4f1e9;--line:#d9d6cd;--blue:#24779c;--blue-dark:#105472;--red:#bd6446;--red-dark:#903d30;--gold:#d4a14b;--round:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:#e8e8e2;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+body{background-image:radial-gradient(circle at 10% 2%,#fff9ef 0,transparent 45%),linear-gradient(130deg,#e4e7e4,#f2ede4);overscroll-behavior:none}
+button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible{outline:3px solid #e1a449;outline-offset:3px}
+.app{max-width:1230px;margin:0 auto;padding:20px clamp(12px,2.5vw,32px) 34px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:17px;flex-wrap:wrap}
+.brand small{display:block;letter-spacing:.22em;color:#738186;font-size:10px;font-weight:900;margin-bottom:2px}
+.brand h1{font-size:clamp(25px,3.1vw,36px);line-height:1.05;margin:0;letter-spacing:.07em;font-weight:900}.brand h1 span{font-size:.46em;letter-spacing:.06em;font-weight:700;vertical-align:middle;margin-left:8px;color:#5d6f73}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+.ghost{border:1px solid #c9cec9;border-radius:10px;background:rgba(255,255,255,.65);padding:9px 13px;color:#45565b;font-weight:750;font-size:13px}
+.ghost:active{background:#dce4e2}
+.hero{background:var(--ink);border-radius:var(--round);color:#fafaf5;padding:15px 19px;display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:16px;box-shadow:0 9px 24px #20343c18;flex-wrap:wrap}
+.hero-left{display:flex;align-items:center;gap:13px}.turn-medal{height:54px;width:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #ffffff3b;border-radius:11px;background:#ffffff11;flex-shrink:0}.turn-medal b{font-size:23px;line-height:1}.turn-medal small{font-size:9px;letter-spacing:.15em;margin-top:3px;color:#d3d9db}
+.hero h2{margin:0 0 2px;font-size:18px;letter-spacing:.02em}.hero p{margin:0;font-size:12px;color:#cbd3d4}
+.power{display:flex;align-items:center;gap:12px}.power-team{text-align:center;min-width:66px}.power-team small{font-size:10px;letter-spacing:.1em;color:#cbd3d4;display:block}.power-team strong{font-size:22px}.power-team.blue strong{color:#7bc5e8}.power-team.red strong{color:#f0a28b}.vs{color:#8e9ea4;font-size:11px;font-weight:900}
+.content{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:16px;align-items:start}
+.battlefield{background:#f9f7f0;border:1px solid #d7d6cd;border-radius:var(--round);padding:13px;box-shadow:0 3px 12px #24313b0b}
+.board-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:2px 1px 10px}.board-head .label{font-size:11px;color:#78847f;letter-spacing:.16em;font-weight:900}.board-head .legend{font-size:11px;color:#667671;font-weight:750}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 9px;vertical-align:middle}.dot.m{background:#30a8cd}.dot.a{background:#e2a044}
+.map-scroll{overflow-x:auto;overflow-y:hidden;border-radius:9px;touch-action:pan-x pan-y;scrollbar-width:thin;background:#c4c8ba}
+.board{--g:4px;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:var(--g);padding:var(--g);min-width:535px;aspect-ratio:10/8;background:#909f95;border:2px solid #a9aaa0;border-radius:9px}
+.cell{min-width:0;min-height:0;width:100%;position:relative;overflow:hidden;border:0;border-radius:4px;background:#d3c7aa;color:#3b493c;padding:0;isolation:isolate;transition:filter .12s ease;user-select:none;-webkit-user-select:none}
+.cell:active{filter:brightness(.9)}
+.cell.plain{background:linear-gradient(137deg,#d6cdaF,#c9bea1)}
+.cell.forest{background:linear-gradient(139deg,#7e9881,#6c8877)}
+.cell.hill{background:linear-gradient(139deg,#aaa79a,#929b94)}
+.cell.city{background:linear-gradient(133deg,#c3afa0,#ab9989)}
+.cell.water{background:repeating-linear-gradient(165deg,#7297a3 0 5px,#7d9eaa 6px 10px);cursor:default}
+.cell.hq.blue-hq{background:linear-gradient(155deg,#91b7c1,#88abb7)}
+.cell.hq.red-hq{background:linear-gradient(155deg,#ddb39f,#c9a08d)}
+.terrain-symbol{pointer-events:none;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.2;font-size:clamp(13px,2.6vw,29px);font-weight:900;letter-spacing:-.08em}
+.terrain-name{pointer-events:none;position:absolute;top:2px;left:3px;z-index:2;font-size:9px;font-weight:850;opacity:.65}
+.cell.hq .terrain-name{opacity:1;color:#253a3d;text-shadow:0 1px #fff7;font-size:8px}
+.cell.reachable::after{content:"";position:absolute;inset:3px;border:2px dashed #14bde1;border-radius:4px;background:#61d5e335;pointer-events:none;z-index:3}
+.cell.reachable .path-dot{display:block;position:absolute;width:12px;height:12px;border-radius:100%;background:#16c6e5;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 3px #d1ffff8c;z-index:4;pointer-events:none}
+.cell.selected::before{content:"";position:absolute;inset:0;border:3px solid #ffed9a;border-radius:5px;z-index:5;pointer-events:none;box-shadow:inset 0 0 0 1px #5c5039}
+.cell.attackable::after{content:"";position:absolute;inset:2px;border:3px solid #ff563d;border-radius:6px;z-index:5;pointer-events:none;box-shadow:inset 0 0 10px #f44c39ab;animation:pulse 1.1s infinite alternate}
+@keyframes pulse{from{opacity:1}to{opacity:.55}}
+.cell.hit{animation:hit .5s ease-out}@keyframes hit{0%{filter:brightness(1.9) saturate(2)}50%{filter:brightness(.85) saturate(2)}100%{filter:none}}
+.unit{width:75%;height:71%;position:absolute;left:12.5%;top:14%;z-index:4;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 2px 5px #17272955;border:1px solid #ffffff40}
+.unit.blue{background:linear-gradient(145deg,#328faf,#195d7d);color:#e5f7ff;border-bottom:3px solid #164d67}
+.unit.red{background:linear-gradient(145deg,#d77959,#9e4535);color:#fff0e3;border-bottom:3px solid #823629}
+.unit.spent{filter:saturate(.53);opacity:.75}.unit svg{width:75%;height:58%;overflow:visible;fill:currentColor;stroke:currentColor}.unit .unit-label{display:none;line-height:1;font-size:9px;font-weight:900}
+.hp{position:absolute;left:8%;right:8%;bottom:5%;height:5px;background:#0005;border-radius:3px;overflow:hidden;z-index:3}.hp i{display:block;height:100%;background:#7fe0a4}.unit.red .hp i{background:#ffcf94}.unit.low .hp i{background:#ff6b64}
+.taken{position:absolute;right:2px;top:0;font-size:9px;font-weight:900;background:#0007;color:#fff;border-radius:2px;padding:0 3px;z-index:5}
+.map-footer{display:flex;justify-content:space-between;gap:8px;margin-top:12px;font-size:11px;flex-wrap:wrap;color:#667674}.terrain-legend{display:flex;gap:12px;flex-wrap:wrap}.terrain-legend b{color:#415554}
+.side{display:flex;flex-direction:column;gap:13px}.panel{background:#faf9f5;border:1px solid #dcdbd2;border-radius:var(--round);padding:15px 16px;box-shadow:0 3px 12px #24313b09}.panel-kicker{font-size:10px;letter-spacing:.15em;color:#859087;font-weight:900;margin-bottom:8px}
+.detail{min-height:184px}.empty-detail h3{font-size:18px;line-height:1.5;margin:5px 0;color:#31464c}.empty-detail p{font-size:13px;color:#7c8580;line-height:1.65;margin:8px 0}
+.unit-detail-head{display:flex;align-items:center;gap:12px}.unit-detail-icon{width:57px;height:57px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#e1edf0;color:#227c9b}.unit-detail-icon.red{background:#f0dbd3;color:#a9533f}.unit-detail-icon svg{height:42px;width:48px;fill:currentColor;stroke:currentColor}.detail-title h3{font-size:20px;margin:0}.detail-title small{color:#697b78;font-size:11px;font-weight:750}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:16px 0 10px}.stat{border-radius:8px;padding:8px 5px;text-align:center;background:#eaece6}.stat b{display:block;font-size:18px}.stat small{font-size:10px;color:#62716e}.healthline{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:11px;font-weight:900}.bar{flex:1;background:#e0e2dc;border-radius:8px;height:8px;overflow:hidden}.bar i{display:block;background:#54a786;height:100%}.info-line{font-size:12px;color:#637270;line-height:1.5;min-height:20px}
+.primary{border:0;border-radius:10px;width:100%;padding:13px 10px;font-size:15px;letter-spacing:.035em;font-weight:850;background:#237e9e;color:white;box-shadow:0 4px 10px #237e9e30}.primary:disabled{background:#9daba8;box-shadow:none;cursor:default}.primary:active:not(:disabled){transform:translateY(1px)}.secondary{background:#eef2ed;border:1px solid #d3dbd3;color:#526b65;font-size:12px;border-radius:8px;padding:9px 12px;font-weight:800;width:100%;margin-top:8px}.secondary:disabled{opacity:.45}
+.instructions{margin-top:4px;display:flex;align-items:center;gap:7px;padding:10px 11px;border-radius:9px;background:#eaf0ed;color:#4e716a;font-size:12px;line-height:1.6;font-weight:700}
+.feed{list-style:none;margin:0;padding:0;max-height:170px;overflow:auto}.feed li{padding:8px 0;border-bottom:1px solid #e5e7e2;font-size:12px;line-height:1.5;color:#667573}.feed li:first-child{font-weight:750;color:#334e54}.feed li:last-child{border:none}.feed li:before{content:"●";font-size:7px;margin-right:8px;color:#ca9d66}
+.tip{font-size:11px;color:#808a85;margin:3px 1px;line-height:1.6}
+.overlay{position:fixed;inset:0;background:#14262ac9;z-index:50;display:flex;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(4px)}.overlay[hidden]{display:none}.modal{width:min(100%,520px);border-radius:18px;background:#faf9f5;padding:27px 27px 22px;box-shadow:0 15px 55px #0005;max-height:min(88vh,760px);overflow:auto}.modal h2{margin:4px 0 16px;font-size:24px}.modal p{line-height:1.8;color:#51615e;font-size:14px}.modal-kicker{font-size:11px;letter-spacing:.18em;color:#a58a5b;font-weight:900}.rule-list{list-style:none;padding:0;margin:9px 0 18px}.rule-list li{font-size:13px;line-height:1.75;color:#50615f;margin:9px 0}.rule-list b{color:#253d42}.outcome{font-size:35px;font-weight:900;margin:8px 0 14px;line-height:1.2}.outcome.win{color:#277f9e}.outcome.lose{color:#ad553d}.outcome.draw{color:#637875}.scorecard{display:flex;justify-content:center;align-items:center;gap:22px;background:#eff0e9;padding:15px;border-radius:10px;margin:15px 0 20px}.scorecard strong{font-size:25px}.toast{position:fixed;bottom:23px;left:50%;transform:translateX(-50%);background:#263940ee;color:#fff;padding:13px 20px;border-radius:12px;max-width:90vw;font-size:13px;font-weight:800;z-index:45;pointer-events:none;opacity:0;transition:opacity .2s;box-shadow:0 8px 20px #0003}.toast.visible{opacity:1}
+.quick-end{display:none}.footer{text-align:center;color:#84908a;font-size:11px;margin-top:20px;letter-spacing:.05em}
+@media(max-width:1020px){.quick-end{display:block;position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:20;width:178px;padding:13px 8px;box-shadow:0 10px 28px #0d4a5b66;border:2px solid #e7f1ec}.quick-end:disabled{opacity:.85}.content{grid-template-columns:minmax(0,1fr)}.side{display:grid;grid-template-columns:1fr 1fr}.side .detail{grid-column:1}.side .actions{grid-column:1}.side .log-panel{grid-column:2;grid-row:1 / span 2}.board{max-width:760px;margin:auto}}
+@media(max-width:650px){.app{padding:13px 8px 28px}.brand h1{font-size:24px}.brand h1 span{font-size:.4em}.hero{padding:12px}.turn-medal{width:43px;height:43px}.turn-medal b{font-size:18px}.hero h2{font-size:15px}.hero p{font-size:11px}.content{gap:10px}.battlefield{padding:8px}.side{grid-template-columns:1fr;gap:9px}.side .detail,.side .actions,.side .log-panel{grid-column:auto;grid-row:auto}.detail{min-height:0}.stats{margin:10px 0}.board{min-width:550px}.top{margin-bottom:11px}.top-actions .ghost{padding:7px 9px;font-size:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand"><small>TACTICAL BOARD GAME · SINGLE PLAYER</small><h1>STEEL FRONT <span>鋼鉄戦線</span></h1></div>
+  <div class="top-actions"><button id="rulesBtn" class="ghost" type="button">遊び方</button><button id="restartBtn" class="ghost" type="button">↻ 新しい対戦</button></div>
+</header>
+<section class="hero" aria-live="polite">
+  <div class="hero-left"><div class="turn-medal"><b id="roundNumber">1</b><small>ROUND</small></div><div><h2 id="phaseTitle">青軍のターン</h2><p id="phaseSub">ユニットを選び、移動して攻撃しよう</p></div></div>
+  <div class="power"><div class="power-team blue"><small>YOU / 青軍</small><strong id="blueCount">6</strong></div><div class="vs">VS</div><div class="power-team red"><small>CPU / 赤軍</small><strong id="redCount">6</strong></div></div>
+</section>
+<main class="content">
+  <section class="battlefield" aria-label="戦場マップ">
+    <div class="board-head"><div class="label">OPERATION / 軍事演習区域 01</div><div class="legend"><span class="dot m"></span>移動 <span class="dot a"></span>攻撃</div></div>
+    <div class="map-scroll"><div id="board" class="board" role="grid" aria-label="10列8行の戦場"></div></div>
+    <div class="map-footer"><span>🔷 青軍司令部＝左　<span style="color:#ac6248">◆</span> 赤軍司令部＝右</span><span class="terrain-legend"><span>🌲 森 <b>防御+1</b></span><span>▲ 高地 <b>防御+1</b></span><span>≋ 水面 <b>進入不可</b></span></span></div>
+  </section>
+  <aside class="side">
+    <section class="panel detail" id="detail" aria-live="polite"></section>
+    <section class="panel actions"><div class="panel-kicker">COMMAND / 指揮</div><button id="endBtn" class="primary" type="button">このターンを終了 →</button><button id="skipBtn" class="secondary" type="button" disabled>選択ユニットの行動を終了</button><div class="instructions" id="guide">☝️ まず青いユニットをタップ</div></section>
+    <section class="panel log-panel"><div class="panel-kicker">BATTLE REPORT / 戦況ログ</div><ul id="feed" class="feed" aria-live="polite"></ul></section>
+  </aside>
+</main>
+<button class="primary quick-end" id="quickEnd" type="button">ターン終了 →</button>
+<p class="tip">※ 10×8マスの戦術ゲームです。自動保存対応（利用環境によります）。通信不要・効果音なし。最大12ラウンドで勝敗を判定します。</p>
+<div class="footer">STEEL FRONT · COMPACT TACTICAL BOARD GAME</div>
+</div>
+<div id="modal" class="overlay" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-kicker" id="modalKicker">FIELD MANUAL</div><h2 id="modalTitle">遊び方</h2><div id="modalBody"></div><button id="closeModal" class="primary" type="button">戦場へ戻る</button></div></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(()=>{'use strict';
+const W=10,H=8,MAX_ROUND=12,STORAGE='steel-front-v1';
+const MAP=[
+'..F....F..',
+'...H..H...',
+'.F......F.',
+'....WW....',
+'....WW....',
+'.F...C..F.',
+'...H..H...',
+'..F....F..'
+];
+const TERRAIN={'.':{name:'平地',kind:'plain',cost:1,cover:0,symbol:''},F:{name:'森',kind:'forest',cost:2,cover:1,symbol:'♣'},H:{name:'高地',kind:'hill',cost:2,cover:1,symbol:'▲'},W:{name:'水面',kind:'water',cost:99,cover:0,symbol:'≋'},C:{name:'市街',kind:'city',cost:1,cover:1,symbol:'▦'}};
+const TYPES={
+ scout:{name:'偵察車',code:'R',move:4,atk:2,armor:0,hp:4,min:1,max:1,svg:'scout'},
+ tank:{name:'中戦車',code:'T',move:3,atk:3,armor:1,hp:6,min:1,max:1,svg:'tank'},
+ heavy:{name:'重戦車',code:'H',move:2,atk:4,armor:2,hp:8,min:1,max:1,svg:'heavy'},
+ arty:{name:'自走砲',code:'A',move:2,atk:4,armor:0,hp:4,min:2,max:3,svg:'arty'}
+};
+const documentById=id=>document.getElementById(id);
+const board=documentById('board'),detail=documentById('detail'),feed=documentById('feed'),guide=documentById('guide'),endBtn=documentById('endBtn'),skipBtn=documentById('skipBtn');
+let state=null,selected=null,reachable=new Map(),token=0,toastTimer=null;
+const dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
+const inside=(x,y)=>x>=0&&x<W&&y>=0&&y<H;
+const key=(x,y)=>`${x},${y}`;
+const tile=(x,y)=>TERRAIN[MAP[y][x]];
+const hq={blue:{x:0,y:4},red:{x:9,y:3}};
+function makeUnit(id,side,type,x,y){return {id,side,type,x,y,hp:TYPES[type].hp,moved:false,fired:false};}
+function initialState(){return {round:1,phase:'blue',winner:null,reason:'',units:[
+makeUnit(1,'blue','tank',0,2),makeUnit(2,'blue','heavy',1,4),makeUnit(3,'blue','scout',1,6),makeUnit(4,'blue','arty',0,7),makeUnit(5,'blue','tank',2,1),makeUnit(6,'blue','scout',0,0),
+makeUnit(7,'red','tank',9,5),makeUnit(8,'red','heavy',8,3),makeUnit(9,'red','scout',8,1),makeUnit(10,'red','arty',9,0),makeUnit(11,'red','tank',7,6),makeUnit(12,'red','scout',9,7)
+],logs:['演習開始！ 青軍の先攻です。'],moves:0};}
+function save(){try{localStorage.setItem(STORAGE,JSON.stringify(state));}catch(e){}}
+function load(){try{const raw=localStorage.getItem(STORAGE);if(!raw)return null;const obj=JSON.parse(raw);if(!obj||!Array.isArray(obj.units)||!Number.isInteger(obj.round)||!['blue','red'].includes(obj.phase))return null;if(!obj.units.every(u=>inside(u.x,u.y)&&TYPES[u.type]&&['blue','red'].includes(u.side)&&Number.isFinite(u.hp)))return null;return obj;}catch(e){return null}}
+function at(x,y){return state.units.find(u=>u.x===x&&u.y===y&&u.hp>0)||null;}
+function living(side){return state.units.filter(u=>u.side===side&&u.hp>0);}
+function ownHQ(side){return hq[side];}
+function enemyHQ(side){return hq[side==='blue'?'red':'blue'];}
+function isHQ(x,y){return (x===hq.blue.x&&y===hq.blue.y)||(x===hq.red.x&&y===hq.red.y);}
+function cssIcon(type){
+ if(type==='scout')return '<svg viewBox="0 0 70 44" aria-hidden="true"><path d="M7 23h9l7-11h20l9 11h10v10H7z"/><path d="M23 12l4-6h16l6 6" fill="none" stroke-width="4"/><circle cx="19" cy="35" r="5" fill="#22383b" stroke-width="2"/><circle cx="51" cy="35" r="5" fill="#22383b" stroke-width="2"/></svg>';
+ if(type==='arty')return '<svg viewBox="0 0 70 44" aria-hidden="true"><path d="M9 24h42l7 7v6H11z"/><path d="M25 17h23l4 7H23z"/><path d="M28 16L53 3l6 3-25 15z"/><rect x="16" y="33" width="40" height="8" rx="4" fill="#20373a" stroke-width="2"/></svg>';
+ if(type==='heavy')return '<svg viewBox="0 0 70 44" aria-hidden="true"><path d="M5 24h57l4 7-7 7H11L4 31z"/><path d="M20 19l6-8h22l6 8v6H19z"/><rect x="41" y="16" width="25" height="5" rx="1"/><rect x="12" y="34" width="46" height="7" rx="3" fill="#233a3e" stroke-width="2"/></svg>';
+ return '<svg viewBox="0 0 70 44" aria-hidden="true"><path d="M8 25h49l6 6-6 7H12L6 31z"/><path d="M21 24l3-9h23l6 9"/><rect x="40" y="18" width="28" height="4" rx="1"/><rect x="14" y="34" width="42" height="6" rx="3" fill="#213a3e" stroke-width="2"/></svg>';
+}
+function reachableFrom(u){
+ const best=new Map([[key(u.x,u.y),0]]),open=[{x:u.x,y:u.y,cost:0}];
+ while(open.length){open.sort((a,b)=>a.cost-b.cost);const p=open.shift();if(p.cost!==best.get(key(p.x,p.y)))continue;
+  for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]]){
+   const x=p.x+dx,y=p.y+dy;if(!inside(x,y)||at(x,y))continue;
+   const cost=p.cost+tile(x,y).cost,k=key(x,y);if(cost>TYPES[u.type].move||cost>=(best.get(k)??Infinity))continue;
+   best.set(k,cost);open.push({x,y,cost});
+  }
+ }
+ best.delete(key(u.x,u.y));return best;
+}
+function canAttack(u,target,moved=u.moved){if(!u||!target||u.side===target.side||u.fired)return false;if(u.type==='arty'&&moved)return false;const d=dist(u,target);return d>=TYPES[u.type].min&&d<=TYPES[u.type].max;}
+function damage(u,target){return Math.max(1,TYPES[u.type].atk-TYPES[target.type].armor-tile(target.x,target.y).cover);}
+function attackTargets(u,moved=u.moved){return living(u.side==='blue'?'red':'blue').filter(v=>canAttack(u,v,moved));}
+function log(message){state.logs.unshift(message);state.logs=state.logs.slice(0,10);}
+function toast(message){const e=documentById('toast');e.textContent=message;e.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('visible'),2200);}
+function setSelected(id){selected=id;const u=state.units.find(x=>x.id===id);reachable=u&&!u.moved&&!u.fired?reachableFrom(u):new Map();render();}
+function performMove(u,x,y){u.x=x;u.y=y;u.moved=true;state.moves++;log(`${u.side==='blue'?'青':'赤'}軍の${TYPES[u.type].name}が移動`);checkVictory();save();}
+function performAttack(u,target){const n=damage(u,target);target.hp=Math.max(0,target.hp-n);u.fired=true;u.moved=true;state.moves++;const dead=target.hp===0;log(`${u.side==='blue'?'青':'赤'}軍の${TYPES[u.type].name}が${TYPES[target.type].name}に${n}ダメージ${dead?'（撃破！）':''}`);checkVictory();save();const hitId=key(target.x,target.y);requestAnimationFrame(()=>{const cell=board.querySelector(`[data-k="${hitId}"]`);if(cell){cell.classList.remove('hit');void cell.offsetWidth;cell.classList.add('hit');}});}
+function checkVictory(){
+ const b=living('blue'),r=living('red');let winner=null,reason='';
+ if(!b.length){winner='red';reason='青軍の全ユニットが撃破されました。'}
+ else if(!r.length){winner='blue';reason='赤軍の全ユニットを撃破しました。'}
+ else if(b.some(u=>u.x===hq.red.x&&u.y===hq.red.y)){winner='blue';reason='敵司令部の占領に成功！'}
+ else if(r.some(u=>u.x===hq.blue.x&&u.y===hq.blue.y)){winner='red';reason='自軍司令部が占領されました。'}
+ if(winner){state.winner=winner;state.reason=reason;log(reason);selected=null;reachable.clear();save();showOutcome();}return Boolean(winner);
+}
+function score(side){return living(side).reduce((sum,u)=>sum+u.hp,0)+living(side).filter(u=>u.x===enemyHQ(side).x&&u.y===enemyHQ(side).y).length*10;}
+function endByScore(){const b=score('blue'),r=score('red');state.winner=b===r?'draw':b>r?'blue':'red';state.reason=`${MAX_ROUND}ラウンド終了。残存戦力で判定しました。`;log(state.reason);save();showOutcome();}
+function onCell(x,y){
+ if(state.phase!=='blue'||state.winner)return;
+ const clicked=at(x,y),u=state.units.find(z=>z.id===selected);
+ if(clicked&&clicked.side==='blue'){setSelected(clicked.id);return;}
+ if(!u){toast('青いユニットを選んでください');return;}
+ if(clicked&&clicked.side==='red'){
+  if(!canAttack(u,clicked)){toast(u.fired?'このユニットは攻撃済みです':u.type==='arty'&&u.moved?'自走砲は移動後に攻撃できません':'敵が射程外です');return;}
+  performAttack(u,clicked);if(state.winner)return;setSelected(u.id);return;
+ }
+ if(reachable.has(key(x,y))){performMove(u,x,y);if(state.winner)return;setSelected(u.id);return;}
+ toast(u.moved||u.fired?'このユニットはもう移動できません':'青い点線のマスに移動できます');
+}
+function createCell(x,y){
+ const ter=tile(x,y),unit=at(x,y),selectedUnit=state.units.find(u=>u.id===selected),k=key(x,y);
+ const tileHQ=isHQ(x,y),isBlueHQ=x===hq.blue.x&&y===hq.blue.y;
+ const moveFlag=selectedUnit?.side==='blue'&&state.phase==='blue'&&reachable.has(k);
+ const atkFlag=selectedUnit?.side==='blue'&&state.phase==='blue'&&unit?.side==='red'&&canAttack(selectedUnit,unit);
+ const s=document.createElement('button');s.type='button';s.className=`cell ${tileHQ?'hq '+(isBlueHQ?'blue-hq':'red-hq'):ter.kind}${moveFlag?' reachable':''}${unit&&unit.id===selected?' selected':''}${atkFlag?' attackable':''}`;
+ s.dataset.k=k;s.setAttribute('role','gridcell');s.setAttribute('aria-label',`${x+1}列${y+1}行 ${tileHQ?(isBlueHQ?'青軍司令部':'赤軍司令部'):ter.name}${unit?'、'+(unit.side==='blue'?'青軍':'赤軍')+TYPES[unit.type].name+' HP'+unit.hp:''}${moveFlag?' 移動可能':''}${atkFlag?' 攻撃可能':''}`);
+ s.innerHTML=`<span class="terrain-symbol">${tileHQ?'⌂':ter.symbol}</span>${tileHQ?`<span class="terrain-name">${isBlueHQ?'BLUE HQ':'RED HQ'}</span>`:ter.kind==='city'?'<span class="terrain-name">市街</span>':''}${moveFlag?'<span class="path-dot"></span>':''}`;
+ if(unit){const d=TYPES[unit.type],u=document.createElement('div');u.className=`unit ${unit.side}${unit.moved&&unit.fired?' spent':''}${unit.hp<=Math.ceil(d.hp/3)?' low':''}`;u.innerHTML=`${cssIcon(unit.type)}<div class="unit-label">${d.name}</div><div class="hp"><i style="width:${unit.hp/d.hp*100}%"></i></div>${unit.moved&&unit.fired?'<span class="taken">✓</span>':''}`;s.appendChild(u);}
+ s.addEventListener('click',()=>onCell(x,y));return s;
+}
+function render(){if(!state)return;
+ documentById('roundNumber').textContent=state.round;
+ documentById('blueCount').textContent=living('blue').length;
+ documentById('redCount').textContent=living('red').length;
+ const cpu=state.phase==='red';
+ documentById('phaseTitle').textContent=state.winner?'対戦終了':cpu?'赤軍のターン / CPU思考中':'青軍のターン / YOUR MOVE';
+ documentById('phaseSub').textContent=state.winner?state.reason:cpu?'敵軍が行動しています':`最大${MAX_ROUND}ラウンド｜敵司令部を目指せ`;
+ const frag=document.createDocumentFragment();for(let y=0;y<H;y++)for(let x=0;x<W;x++)frag.appendChild(createCell(x,y));board.replaceChildren(frag);
+ const u=state.units.find(a=>a.id===selected&&a.hp>0);
+ if(!u){detail.innerHTML='<div class="panel-kicker">UNIT DATA / 部隊情報</div><div class="empty-detail"><h3>戦車を選んで<br>作戦を立てよう。</h3><p>青軍のユニットをタップすると、移動できるマスと攻撃可能な敵を表示します。</p></div>';}
+ else{const d=TYPES[u.type],canAct=state.phase==='blue'&&u.side==='blue',fireLocked=d.svg==='arty'&&u.moved;
+ detail.innerHTML=`<div class="panel-kicker">UNIT DATA / 部隊情報</div><div class="unit-detail-head"><div class="unit-detail-icon ${u.side==='red'?'red':''}">${cssIcon(u.type)}</div><div class="detail-title"><h3>${d.name}</h3><small>${u.side==='blue'?'青軍 / YOUR UNIT':'赤軍 / ENEMY'} · ${d.code}-${u.id.toString().padStart(2,'0')}</small></div></div><div class="stats"><div class="stat"><b>${d.move}</b><small>移動力</small></div><div class="stat"><b>${d.atk}</b><small>攻撃力</small></div><div class="stat"><b>${d.min===d.max?d.max:d.min+'–'+d.max}</b><small>射程</small></div></div><div class="healthline">HP ${u.hp} / ${d.hp}<span class="bar"><i style="width:${u.hp/d.hp*100}%"></i></span></div><div class="info-line">${u.side==='red'?'敵軍のユニットです。':!canAct?'CPUターン中':u.fired?'✓ 行動終了':fireLocked?'移動済み（自走砲は射撃不可）':u.moved?'移動済み · 攻撃できます':`移動${d.move}マス以内 · 攻撃${d.min===d.max?d.max:`${d.min}〜${d.max}`}マス`}</div>`;
+ }
+ endBtn.disabled=Boolean(state.winner)||cpu;const q=documentById('quickEnd');q.disabled=Boolean(state.winner)||cpu;q.textContent=state.winner?'対戦終了':cpu?'CPU行動中…':'ターン終了 →';skipBtn.disabled=Boolean(state.winner)||cpu||!u||u.side!=='blue'||(u.moved&&u.fired);
+ guide.textContent=state.winner?'🏁 対戦終了。結果を確認しよう':cpu?'⌛ 赤軍が作戦を実行中…':!u?'☝️ まず青いユニットをタップ':u.fired?'✓ 行動終了。別の部隊を選ぼう':reachable.size?'🔹 水色のマスで移動／赤い枠の敵に攻撃':'🎯 赤い枠の敵をタップで攻撃';
+ feed.replaceChildren(...state.logs.map(t=>{const li=document.createElement('li');li.textContent=t;return li;}));
+}
+function modal(title,kicker,body,buttonText='戦場へ戻る',canClose=true){documentById('modalTitle').textContent=title;documentById('modalKicker').textContent=kicker;documentById('modalBody').innerHTML=body;documentById('closeModal').textContent=buttonText;documentById('closeModal').onclick=()=>{documentById('modal').hidden=true;if(!canClose)newGame();};documentById('modal').hidden=false;}
+function showRules(){modal('ゲームの遊び方','FIELD MANUAL',`<p>「大戦略」をコンパクトにした、10×8マスの戦車ボードゲーム。あなたは<b>青軍</b>を指揮し、CPUの赤軍と戦います。</p><ul class="rule-list"><li><b>① 選ぶ：</b>青い戦車をタップします。</li><li><b>② 移動：</b>水色の点線マスをタップ。ユニットごとに1ターン1回まで移動できます。</li><li><b>③ 攻撃：</b>赤枠の敵をタップ。攻撃も1ターン1回まで。攻撃後は移動できません。</li><li><b>④ 交代：</b>「このターンを終了」でCPUが行動します。</li><li><b>勝利条件：</b>敵司令部（赤軍HQ）を占領するか、敵全滅。${MAX_ROUND}ラウンド経過時は残りHPの合計で判定します。</li><li><b>兵種：</b>偵察車＝速い／中戦車＝万能／重戦車＝頑丈／自走砲＝2〜3マス離れて射撃（移動後は射撃不可）。</li><li><b>地形：</b>森・高地・市街は受けるダメージを1軽減。森・高地は進入に移動力2が必要。水面は通れません。</li></ul><p>戦いのコツ：偵察車で側面を突き、自走砲は後方に置いてから狙いましょう。</p>`);}
+function showOutcome(){render();const b=score('blue'),r=score('red'),winner=state.winner;
+ const title=winner==='blue'?'勝利！':winner==='red'?'敗北':'引き分け';const klass=winner==='blue'?'win':winner==='red'?'lose':'draw';
+ modal('作戦終了','BATTLE RESULT',`<div class="outcome ${klass}">${title}</div><p>${state.reason}</p><div class="scorecard"><div>青軍<br><strong>${b}</strong></div><span>—</span><div>赤軍<br><strong>${r}</strong></div></div><p>終了ラウンド：${state.round} / ${MAX_ROUND}<br>また挑戦するなら「もう一戦」をどうぞ。</p>`,'もう一戦',false);
+}
+function newGame(){token++;state=initialState();selected=null;reachable=new Map();documentById('modal').hidden=true;save();render();}
+function endBlueTurn(){if(state.phase!=='blue'||state.winner)return;selected=null;reachable=new Map();state.phase='red';living('red').forEach(u=>{u.moved=false;u.fired=false;});log('青軍のターン終了 → 赤軍の行動');save();render();runAI(++token);}
+const pause=t=>new Promise(resolve=>setTimeout(resolve,t));
+function evaluateMove(u,x,y,targets,moved){
+ const dst=enemyHQ('red'),goal=dist({x,y},dst),closest=Math.min(...living('blue').map(b=>dist({x,y},b)));const cover=tile(x,y).cover;
+ let score=-(goal*1.25+closest*1.0)+cover*.75+(x===u.x&&y===u.y?.3:0);
+ if(x===dst.x&&y===dst.y)score+=500;
+ for(const t of targets){const d=damage(u,t),kill=d>=t.hp,priority=t.type==='arty'?1.3:0;
+  score+=25+d*7+(kill?20:0)+priority;
+ }
+ if(u.type==='arty'&&moved)score-=2;
+ return score;
+}
+function chooseAI(u){
+ let choices=[{x:u.x,y:u.y,cost:0}],here={x:u.x,y:u.y};
+ if(!u.moved&&!u.fired)choices.push(...[...reachableFrom(u).entries()].map(([k,cost])=>{const [x,y]=k.split(',').map(Number);return {x,y,cost};}));
+ let best={x:u.x,y:u.y,score:-Infinity,targetId:null};
+ for(const p of choices){
+  const moved=p.x!==u.x||p.y!==u.y;
+  const potential=!u.fired&&!(u.type==='arty'&&moved)?living('blue').filter(t=>{const d=dist(p,t);return d>=TYPES[u.type].min&&d<=TYPES[u.type].max;}):[];
+  if(!potential.length){const score=evaluateMove(u,p.x,p.y,[],moved);if(score>best.score){best={...p,score,targetId:null};}continue;}
+  for(const t of potential){const score=evaluateMove(u,p.x,p.y,[t],moved);if(score>best.score){best={...p,score,targetId:t.id};}}
+ }
+ return best;
+}
+async function runAI(myToken){
+ const order=living('red').sort((a,b)=>a.type==='arty'?1:b.type==='arty'?-1:0).map(u=>u.id);
+ for(const id of order){if(myToken!==token||state.winner)return;const u=state.units.find(a=>a.id===id);if(!u||u.hp<=0||u.fired)continue;
+  const choice=chooseAI(u),moved=choice.x!==u.x||choice.y!==u.y;
+  await pause(240);if(myToken!==token||state.winner)return;
+  if(moved){performMove(u,choice.x,choice.y);render();if(state.winner)return;await pause(180);if(myToken!==token)return;}
+  const target=state.units.find(a=>a.id===choice.targetId&&a.hp>0);
+  if(target&&canAttack(u,target)){performAttack(u,target);render();if(state.winner)return;await pause(250);if(myToken!==token)return;}
+  u.moved=true;u.fired=true;save();render();
+ }
+ if(myToken!==token||state.winner)return;
+ if(state.round>=MAX_ROUND){endByScore();return;}
+ state.round++;state.phase='blue';living('blue').forEach(u=>{u.moved=false;u.fired=false;});log(`第${state.round}ラウンド開始。青軍のターン`);save();render();
+}
+function init(){state=load()||initialState();render();if(state.winner)showOutcome();else if(state.phase==='red')runAI(++token);}
+documentById('rulesBtn').addEventListener('click',showRules);
+documentById('closeModal').addEventListener('click',()=>documentById('modal').hidden=true);
+documentById('restartBtn').addEventListener('click',()=>{if(window.confirm('現在の対戦を終了して、新しい対戦を開始しますか？'))newGame();});
+endBtn.addEventListener('click',endBlueTurn);documentById('quickEnd').addEventListener('click',endBlueTurn);
+skipBtn.addEventListener('click',()=>{const u=state.units.find(a=>a.id===selected);if(!u||u.side!=='blue'||state.phase!=='blue')return;u.moved=u.fired=true;log(`青軍の${TYPES[u.type].name}が待機`);save();setSelected(u.id);});
+init();
+})();
+</script>
+</body>
+</html>
