@@ -189,14 +189,14 @@ function aimAI(u){
    if(stay&&o&&objectiveOwner(o)==='red')v+=36;
   }else if(u.type==='scout'){
    // Reconnaissance: approach contested area, favor cover/high ground; avoid blocking capture tiles.
-   const near=Math.min(...goalRoutes.map(z=>z.cost));
+   const near=Math.min(...goalRoutes.map(z=>z.costs.get(k(p.x,p.y))??999));
    v-=Math.abs(near-2)*2.4;
    v-=Math.abs(p.x-7.5)*1.0;
    if(kind(p.x,p.y)==='hill')v+=10;
    if(o)v-=20;
    if(p.x===u.x&&p.y===u.y&&near>3)v-=4;
   }else{
-   const near=Math.min(...goalRoutes.map(z=>z.cost));
+   const near=Math.min(...goalRoutes.map(z=>z.costs.get(k(p.x,p.y))??999));
    v-=Math.abs(near-3)*2.7;
    if(near<=1)v-=12;
    if(o)v-=15;
