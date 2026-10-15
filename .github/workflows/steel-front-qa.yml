@@ -1,4 +1,4 @@
-name: Steel Front V2 QA
+name: Steel Front QA
 on:
   push:
     branches: [main]
@@ -11,7 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check JavaScript syntax
+      - name: Check V2 JavaScript syntax
         run: node --check steel-front/v2/game.js
-      - name: Test fog, hex, HQ mechanics
+      - name: V2 regression
         run: node steel-front/v2/qa.test.cjs
+      - name: Check V3 JavaScript syntax
+        run: node --check steel-front/v3/game.js
+      - name: V3 tactical victory tests
+        run: node steel-front/v3/qa.test.cjs
