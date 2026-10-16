@@ -69,7 +69,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visibl
 <body>
 <div class="app">
 <header class="top">
-  <div class="brand"><small>TACTICAL BOARD GAME · SINGLE PLAYER</small><h1>STEEL FRONT <span>鋼鉄戦線 V3</span></h1></div>
+  <div class="brand"><small>TACTICAL BOARD GAME · SINGLE PLAYER</small><h1>STEEL FRONT <span>鋼鉄戦線 V4</span></h1></div>
   <div class="top-actions"><button id="rulesBtn" class="ghost" type="button">遊び方</button><button id="restartBtn" class="ghost" type="button">↻ 新しい対戦</button></div>
 </header>
 <section class="hero" aria-live="polite">
@@ -78,7 +78,7 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visibl
 </section>
 <main class="content">
   <section class="battlefield" aria-label="戦場マップ">
-    <div class="board-head"><div class="label">OPERATION / 山岳・森林戦域</div><div class="legend"><span class="dot m"></span>移動 <span class="dot a"></span>攻撃</div></div>
+    <div class="board-head"><div class="label">OPERATION / 変化する戦域</div><div class="legend"><span class="dot m"></span>移動 <span class="dot a"></span>攻撃</div></div>
     <div class="map-scroll"><div id="board" class="board" role="grid" aria-label="17列12行のヘックス戦場"></div></div>
     <div class="map-footer"><span>● 北・中・南の拠点を確保 ｜ 🔷 青HQ＝左　<span style="color:#ac6248">◆</span> 赤HQ＝右 ｜ HQは勝利条件ではありません</span><span class="terrain-legend"><span>🌲 森 <b>遮蔽+1</b></span><span>▲ 高地 <b>視界+1</b></span><span>⛰ 山 <b>索敵を遮断</b></span></span></div>
   </section>
@@ -89,11 +89,11 @@ button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visibl
   </aside>
 </main>
 <button class="primary quick-end" id="quickEnd" type="button">ターン終了 →</button>
-<p class="tip">※ 勝利：戦車で3拠点中2つを2ターン維持、または敵5部隊を撃破。偵察車は占領不可。暗い範囲は未索敵。自動保存・通信不要。最大18ラウンド。地図は指でスクロールできます。</p>
+<p class="tip">※ 新しい対戦ごとに地形・拠点・部隊配置・CPU作戦を変更。霧・雨も発生。勝利：2拠点を2ターン保持／敵5部隊撃破。最大18ラウンド。地図は指でスクロールできます。</p>
 <div class="footer">STEEL FRONT · COMPACT TACTICAL BOARD GAME</div>
 </div>
 <div id="modal" class="overlay" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-kicker" id="modalKicker">FIELD MANUAL</div><h2 id="modalTitle">遊び方</h2><div id="modalBody"></div><button id="closeModal" class="primary" type="button">戦場へ戻る</button></div></div>
 <div class="toast" id="toast" role="status"></div>
-<script src="./v3/game.js?v=3"></script>
+<script src="./v4/game.js?v=4"></script>
 </body>
 </html>
