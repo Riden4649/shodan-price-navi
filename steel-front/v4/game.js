@@ -21,7 +21,7 @@ function prepare(seed,operation){OBJECTIVES=OPERATIONS[operation].objectives;
  MOUNTAINS=new Set([...BASE_MOUNTAINS].map(p=>{let [x,y]=p.split(',').map(Number);return k(x,y+vertical);}));
  LAKES=new Set([...BASE_LAKES].map(p=>{let [x,y]=p.split(',').map(Number);return k(x+horizontal,y);}));
 }
-function weather(){if(!state||state.round<=3)return '晴れ';return ['晴れ','霧','雨'][mix(state.seed,Math.floor((state.round-1)/3)+55)%3];}
+function weather(){if(!state||state.round<=3)return '晴れ';return ['霧','雨','晴れ'][(mix(state.seed,55)%2+Math.floor((state.round-4)/3))%3];}
 function sightRange(u){return Math.max(1,TYPES[u.type].sight+(kind(u.x,u.y)==='hill'?1:0)-(weather()==='霧'?2:0));}
 function moveRange(u){return Math.max(1,TYPES[u.type].move-(weather()==='雨'&&u.type==='scout'?1:0));}
 const CAPTURE_TYPES=new Set(['tank','heavy']);
@@ -56,9 +56,11 @@ function visible(side){const result=new Set(),units=alive(side);
 }
 function refresh(){visibleBlue=visible('blue');visibleRed=visible('red');if(state.phase==='blue'){for(const p of visibleBlue)state.explored[p]=1;}}
 function unit(id,side,type,x,y){return {id,side,type,x,y,hp:TYPES[type].hp,moved:false,fired:false};}
-function initial(){
+function initial(previousOperation=null){
  const seed=Number.isInteger(window.__SF_SEED__)?window.__SF_SEED__:Math.floor(Math.random()*2147483647);
- const operation=mix(seed,11)%OPERATIONS.length,plan=mix(seed,23)%PLANS.length;
+ let operation=mix(seed,11)%OPERATIONS.length;
+ if(previousOperation!==null&&operation===previousOperation)operation=(operation+1+mix(seed,29)%(OPERATIONS.length-1))%OPERATIONS.length;
+ const plan=mix(seed,23)%PLANS.length;
  prepare(seed,operation);
  const a=FORMATIONS[mix(seed,37)%FORMATIONS.length],b=FORMATIONS[mix(seed,47)%FORMATIONS.length];
  const types=['scout','tank','heavy','tank','arty','scout','tank'];
@@ -183,7 +185,7 @@ function score(side){return alive(side).reduce((s,u)=>s+u.hp,0)+seizedBy(side)*6
 
 function outcome(){render();const b=score('blue'),r=score('red'),winner=state.winner;
  modal('作戦終了','BATTLE RESULT','<div class="outcome '+(winner==='blue'?'win':winner==='red'?'lose':'draw')+'">'+(winner==='blue'?'勝利！':winner==='red'?'敗北':'引き分け')+'</div><p>'+state.reason+'</p><div class="scorecard"><div>青軍<br><strong>'+b+'</strong></div><span>—</span><div>赤軍<br><strong>'+r+'</strong></div></div><p>第'+state.round+' / '+MAX_ROUND+'ラウンドで終了</p>','もう一戦',true);}
-function newGame(){session++;state=initial();selected=null;reach=new Map();$('modal').hidden=true;refresh();render();}
+function newGame(){const previous=state?.operation??null;session++;state=initial(previous);selected=null;reach=new Map();$('modal').hidden=true;refresh();render();}
 function endTurn(){if(state.phase!=='blue'||state.winner)return;if(awardControl('blue'))return;selected=null;reach=new Map();state.contacts=[];state.phase='red';alive('red').forEach(u=>{u.moved=false;u.fired=false;});render();runCPU(++session);}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function routesTo(goal){
