@@ -19,3 +19,7 @@ jobs:
         run: node --check steel-front/v3/game.js
       - name: V3 tactical victory tests
         run: node steel-front/v3/qa.test.cjs
+      - name: Check V4 JavaScript syntax
+        run: node --check steel-front/v4/game.js
+      - name: V4 battlefield variation regression
+        run: node steel-front/v4/qa.test.cjs
